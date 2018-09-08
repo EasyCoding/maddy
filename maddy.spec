@@ -9,7 +9,7 @@ Release: 1%{?dist}
 License: MIT
 Summary: C++ Markdown to HTML header-only parser library
 URL: https://github.com/progsource/%{name}
-Source0: %{url}/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
+Source0: %{url}/archive/%{version}.tar.gz#/%{name}-%{version}.tar.gz
 
 BuildRequires: ninja-build
 BuildRequires: gcc-c++
