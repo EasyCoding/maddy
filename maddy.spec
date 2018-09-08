@@ -50,3 +50,5 @@ popd
 %{_libdir}/cmake/%{name}
 
 %changelog
+* Sat Sep 08 2018 Vitaly Zaitsev <vitaly@easycoding.org> - 1.0.3-1
+- Initial SPEC release.
