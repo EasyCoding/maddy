@@ -43,8 +43,8 @@ popd
 %ninja_install -C %{_target_platform}
 
 %files devel
-%doc README.md AUTHORS
-%license LICENSE
+%doc README.md
+%license LICENSE AUTHORS
 %{_includedir}/%{name}
 %{_libdir}/pkgconfig/%{name}.pc
 %{_libdir}/cmake/%{name}
