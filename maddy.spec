@@ -46,6 +46,7 @@ popd
 %doc README.md AUTHORS
 %license LICENSE
 %{_includedir}/%{name}
+%{_libdir}/pkgconfig/%{name}.pc
 %{_libdir}/cmake/%{name}
 
 %changelog
