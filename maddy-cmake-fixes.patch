@@ -1,27 +1,28 @@
-From 576ec8913c132b71abe3218ff91c24e59324ee6f Mon Sep 17 00:00:00 2001
-From: Konstantinos Sideris <sideris.konstantin@gmail.com>
-Date: Fri, 7 Sep 2018 18:57:43 +0300
-Subject: [PATCH 1/2] Modernize cmake & add install target
+From 110a0dcc0debd5006cb0e1e162805ff71bf2821d Mon Sep 17 00:00:00 2001
+From: Vitaly Zaitsev <vitaly@easycoding.org>
+Date: Tue, 19 Feb 2019 12:59:17 +0100
+Subject: [PATCH] Modernize cmake & add install target.
 
+Patch by Konstantinos Sideris <sideris.konstantin@gmail.com>.
 ---
- CMakeLists.txt        | 106 +++++++++++++++++++++---------------------
- cmake/Config.cmake.in |  21 +++++++++
+ CMakeLists.txt        | 119 +++++++++++++++++++++---------------------
+ cmake/Config.cmake.in |  21 ++++++++
  cmake/maddy.pc.in     |   6 +++
- 3 files changed, 81 insertions(+), 52 deletions(-)
+ 3 files changed, 87 insertions(+), 59 deletions(-)
  create mode 100644 cmake/Config.cmake.in
  create mode 100644 cmake/maddy.pc.in
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 634dfc4..cb3c571 100644
+index 70f723f..b84da97 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -1,70 +1,72 @@
+@@ -1,77 +1,78 @@
 -# This project is licensed under the MIT license. For more information see the
 -# LICENSE file.
 +cmake_minimum_required(VERSION 3.1)
  
 -cmake_minimum_required(VERSION 2.8)
-+project(maddy VERSION 1.0.3 LANGUAGES CXX)
++project(maddy VERSION 1.1.0 LANGUAGES CXX)
  
 -project(maddy)
 +include(GNUInstallDirs)
@@ -36,6 +37,16 @@ index 634dfc4..cb3c571 100644
  
 -set(MADDY_CPP_VERSION 14)
 -add_definitions(-DCPP_VERSION=${MADDY_CPP_VERSION})
++if(NOT CMAKE_BUILD_TYPE)
++  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose Release or Debug" FORCE)
++endif()
+ 
+-# ------------------------------------------------------------------------------
++message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
+ 
+-set(CMAKE_BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/build)
+-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+-set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 +target_include_directories(
 +  maddy
 +  INTERFACE
@@ -45,9 +56,8 @@ index 634dfc4..cb3c571 100644
 -# ------------------------------------------------------------------------------
 +set(HEADER_BASE "${CMAKE_CURRENT_SOURCE_DIR}/include")
  
--set(CMAKE_BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/build)
--set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
--set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+-set(MADDY_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
+-file(GLOB_RECURSE MADDY_TESTS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/tests/maddy/*.cpp)
 +#
 +# Install/export targets and files
 +#
@@ -62,29 +72,24 @@ index 634dfc4..cb3c571 100644
 +set(targets_export_name "${PROJECT_NAME}Targets")
 +set(namespace "${PROJECT_NAME}::")
  
--set(MADDY_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
--file(GLOB_RECURSE MADDY_TESTS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/tests/maddy/*.cpp)
+-if (UNIX)
+-  set(
+-    CMAKE_CXX_FLAGS
+-    "${CMAKE_CXX_FLAGS} -g -std=c++${MADDY_CPP_VERSION} -Wall -Wpedantic -Wextra -Wno-ignored-qualifiers -fno-rtti -fno-exceptions -fsanitize=address -fno-omit-frame-pointer"
+-  )
+-else()
+-  set(
+-    CMAKE_CXX_FLAGS
+-    "${CMAKE_CXX_FLAGS} -std=c++${MADDY_CPP_VERSION}"
+-  )
+-endif()
 +# Generate package version file
 +include(CMakePackageConfigHelpers)
 +write_basic_package_version_file("${version_config}" COMPATIBILITY
 +                                 SameMajorVersion)
  
 -# ------------------------------------------------------------------------------
-+# Configure pkg config file.
-+configure_file("cmake/maddy.pc.in" "${pkg_config}" @ONLY)
- 
--set(
--  CMAKE_CXX_FLAGS
--  "${CMAKE_CXX_FLAGS} -g -std=c++${MADDY_CPP_VERSION} -Wall -Wpedantic -Wextra -Wno-ignored-qualifiers -fno-rtti -fno-exceptions -fsanitize=address -fno-omit-frame-pointer"
--)
-+# Install targets.
-+install(TARGETS maddy EXPORT "${targets_export_name}")
- 
--# ------------------------------------------------------------------------------
-+# Install headers.
-+install(DIRECTORY "${HEADER_BASE}/${PROJECT_NAME}" DESTINATION
-+                  "${include_install_dir}")
- 
+-
 -if (UNIX AND NOT APPLE)
 -  execute_process(COMMAND ${CMAKE_CXX_COMPILER}
 -                  -fuse-ld=gold -Wl,--version
@@ -97,16 +102,27 @@ index 634dfc4..cb3c571 100644
 -        "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=gold ")
 -  endif()
 -endif()
-+# Install project version file.
-+install(FILES "${version_config}" DESTINATION "${config_install_dir}")
++# Configure pkg config file.
++configure_file("cmake/maddy.pc.in" "${pkg_config}" @ONLY)
++
++# Install targets.
++install(TARGETS maddy EXPORT "${targets_export_name}")
++
++# Install headers.
++install(DIRECTORY "${HEADER_BASE}/${PROJECT_NAME}" DESTINATION
++                  "${include_install_dir}")
  
 -# ------------------------------------------------------------------------------
-+# Install pkg config file.
-+install(FILES "${pkg_config}" DESTINATION "${pkgconfig_install_dir}")
++# Install project version file.
++install(FILES "${version_config}" DESTINATION "${config_install_dir}")
  
 -set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 -add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libs/gtest/googlemock)
 -add_subdirectory(libs)
++# Install pkg config file.
++install(FILES "${pkg_config}" DESTINATION "${pkgconfig_install_dir}")
+ 
+-# ------------------------------------------------------------------------------
 +# Install project config file.
 +install(EXPORT "${targets_export_name}"
 +               NAMESPACE
@@ -116,21 +132,19 @@ index 634dfc4..cb3c571 100644
 +               FILE
 +               ${project_config})
  
--# ------------------------------------------------------------------------------
-+# Export build directory config file.
-+export(
-+  EXPORT ${targets_export_name} NAMESPACE "${namespace}" FILE ${project_config})
- 
 -include_directories(
 -  ${LIBS_INCLUDE_DIRS}
 -  ${MADDY_INCLUDE_DIR}
 -  ${CMAKE_CURRENT_SOURCE_DIR}/tests
 -)
++# Export build directory config file.
++export(
++  EXPORT ${targets_export_name} NAMESPACE "${namespace}" FILE ${project_config})
+ 
+-# ------------------------------------------------------------------------------
 +# Register project in CMake user registry.
 +export(PACKAGE ${PROJECT_NAME})
  
--# ------------------------------------------------------------------------------
--
 -add_executable(
 -  MaddyTests
 -    ${MADDY_TESTS_FILES}
@@ -179,30 +193,6 @@ index 0000000..ec65d5f
 +Name: @PROJECT_NAME@
 +Description: C++ Markdown to HTML header-only parser library.
 +Version: @PROJECT_VERSION@
+-- 
+2.20.1
 
-From d6b32013a580d40de57ac8b6650846abecbb071f Mon Sep 17 00:00:00 2001
-From: Konstantinos Sideris <sideris.konstantin@gmail.com>
-Date: Fri, 7 Sep 2018 19:12:57 +0300
-Subject: [PATCH 2/2] Set build type to Release
-
----
- CMakeLists.txt | 6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index cb3c571..dcaa433 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -10,6 +10,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
- add_library(maddy INTERFACE)
- add_library(maddy::maddy ALIAS maddy)
- 
-+if(NOT CMAKE_BUILD_TYPE)
-+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose Release or Debug" FORCE)
-+endif()
-+
-+message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
-+
- target_include_directories(
-   maddy
-   INTERFACE
