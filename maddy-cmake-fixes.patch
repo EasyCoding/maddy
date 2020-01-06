@@ -22,7 +22,7 @@ index 70f723f..b84da97 100644
 +cmake_minimum_required(VERSION 3.1)
  
 -cmake_minimum_required(VERSION 2.8)
-+project(maddy VERSION 1.1.0 LANGUAGES CXX)
++project(maddy VERSION 1.1.1 LANGUAGES CXX)
  
 -project(maddy)
 +include(GNUInstallDirs)
