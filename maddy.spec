@@ -4,7 +4,7 @@
 
 Name: maddy
 Version: 1.1.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 License: MIT
 Summary: C++ Markdown to HTML header-only parser library
@@ -50,6 +50,9 @@ popd
 %{_libdir}/cmake/%{name}
 
 %changelog
+* Wed Jan 29 2020 Fedora Release Engineering <releng@fedoraproject.org> - 1.1.1-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
+
 * Mon Jan 06 2020 Vitaly Zaitsev <vitaly@easycoding.org> - 1.1.1-1
 - Updated to version 1.1.1.
 
