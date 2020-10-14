@@ -5,8 +5,8 @@
 %global debug_package %{nil}
 
 Name: maddy
-Version: 1.1.1
-Release: 3%{?dist}
+Version: 1.1.2
+Release: 1%{?dist}
 
 License: MIT
 Summary: C++ Markdown to HTML header-only parser library
@@ -48,6 +48,9 @@ Provides: %{name}-static = %{?epoch:%{epoch}:}%{version}-%{release}
 %{_libdir}/cmake/%{name}
 
 %changelog
+* Wed Oct 14 2020 Vitaly Zaitsev <vitaly@easycoding.org> - 1.1.2-1
+- Updated to version 1.1.2.
+
 * Tue Jul 28 2020 Fedora Release Engineering <releng@fedoraproject.org> - 1.1.1-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_33_Mass_Rebuild
 

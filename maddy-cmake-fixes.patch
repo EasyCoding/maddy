@@ -1,28 +1,28 @@
-From 110a0dcc0debd5006cb0e1e162805ff71bf2821d Mon Sep 17 00:00:00 2001
+From 7f2bc4138ea05d24e47a94f2ed7dd9526872dd17 Mon Sep 17 00:00:00 2001
 From: Vitaly Zaitsev <vitaly@easycoding.org>
-Date: Tue, 19 Feb 2019 12:59:17 +0100
+Date: Wed, 14 Oct 2020 13:45:17 +0200
 Subject: [PATCH] Modernize cmake & add install target.
 
 Patch by Konstantinos Sideris <sideris.konstantin@gmail.com>.
 ---
- CMakeLists.txt        | 119 +++++++++++++++++++++---------------------
- cmake/Config.cmake.in |  21 ++++++++
- cmake/maddy.pc.in     |   6 +++
- 3 files changed, 87 insertions(+), 59 deletions(-)
+ CMakeLists.txt        | 126 +++++++++++++++++++++---------------------
+ cmake/Config.cmake.in |  21 +++++++
+ cmake/maddy.pc.in     |   6 ++
+ 3 files changed, 89 insertions(+), 64 deletions(-)
  create mode 100644 cmake/Config.cmake.in
  create mode 100644 cmake/maddy.pc.in
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 70f723f..b84da97 100644
+index ec6649f..87d6ac3 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -1,77 +1,78 @@
+@@ -1,80 +1,78 @@
 -# This project is licensed under the MIT license. For more information see the
 -# LICENSE file.
 +cmake_minimum_required(VERSION 3.1)
  
 -cmake_minimum_required(VERSION 2.8)
-+project(maddy VERSION 1.1.1 LANGUAGES CXX)
++project(maddy VERSION 1.1.2 LANGUAGES CXX)
  
 -project(maddy)
 +include(GNUInstallDirs)
@@ -104,10 +104,14 @@ index 70f723f..b84da97 100644
 -endif()
 +# Configure pkg config file.
 +configure_file("cmake/maddy.pc.in" "${pkg_config}" @ONLY)
-+
+ 
+-# ------------------------------------------------------------------------------
 +# Install targets.
 +install(TARGETS maddy EXPORT "${targets_export_name}")
-+
+ 
+-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libs/gtest/googlemock)
+-add_subdirectory(libs)
 +# Install headers.
 +install(DIRECTORY "${HEADER_BASE}/${PROJECT_NAME}" DESTINATION
 +                  "${include_install_dir}")
@@ -116,13 +120,27 @@ index 70f723f..b84da97 100644
 +# Install project version file.
 +install(FILES "${version_config}" DESTINATION "${config_install_dir}")
  
--set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
--add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libs/gtest/googlemock)
--add_subdirectory(libs)
+-add_library(maddy INTERFACE)
+-target_include_directories(maddy INTERFACE
+-  ${MADDY_INCLUDE_DIR}
+-)
+-
+-# ------------------------------------------------------------------------------
+-
+-add_executable(
+-  MaddyTests
+-    ${MADDY_TESTS_FILES}
+-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/main.cpp
+-)
+-target_include_directories(MaddyTests PUBLIC
+-  ${LIBS_INCLUDE_DIRS}
+-  ${CMAKE_CURRENT_SOURCE_DIR}/tests
+-)
+-target_link_libraries(MaddyTests maddy gmock_main)
+-add_test(MaddyTests ${CMAKE_CURRENT_SOURCE_DIR}/build/MaddyTests)
 +# Install pkg config file.
 +install(FILES "${pkg_config}" DESTINATION "${pkgconfig_install_dir}")
- 
--# ------------------------------------------------------------------------------
++
 +# Install project config file.
 +install(EXPORT "${targets_export_name}"
 +               NAMESPACE
@@ -131,27 +149,14 @@ index 70f723f..b84da97 100644
 +               "${config_install_dir}"
 +               FILE
 +               ${project_config})
- 
--include_directories(
--  ${LIBS_INCLUDE_DIRS}
--  ${MADDY_INCLUDE_DIR}
--  ${CMAKE_CURRENT_SOURCE_DIR}/tests
--)
++
 +# Export build directory config file.
 +export(
 +  EXPORT ${targets_export_name} NAMESPACE "${namespace}" FILE ${project_config})
- 
--# ------------------------------------------------------------------------------
++
 +# Register project in CMake user registry.
 +export(PACKAGE ${PROJECT_NAME})
- 
--add_executable(
--  MaddyTests
--    ${MADDY_TESTS_FILES}
--    ${CMAKE_CURRENT_SOURCE_DIR}/tests/main.cpp
--)
--target_link_libraries(MaddyTests gmock_main)
--add_test(MaddyTests ${CMAKE_CURRENT_SOURCE_DIR}/build/MaddyTests)
++
 +file(GLOB_RECURSE maddy_include_SRCS "${HEADER_BASE}/*.h")
 +add_custom_target(maddy_headers_for_ide SOURCES ${maddy_include_SRCS})
 diff --git a/cmake/Config.cmake.in b/cmake/Config.cmake.in
@@ -183,7 +188,7 @@ index 0000000..0e2accb
 +include("${CMAKE_CURRENT_LIST_DIR}/@targets_export_name@.cmake")
 diff --git a/cmake/maddy.pc.in b/cmake/maddy.pc.in
 new file mode 100644
-index 0000000..ec65d5f
+index 0000000..5104417
 --- /dev/null
 +++ b/cmake/maddy.pc.in
 @@ -0,0 +1,6 @@
@@ -194,5 +199,5 @@ index 0000000..ec65d5f
 +Description: C++ Markdown to HTML header-only parser library.
 +Version: @PROJECT_VERSION@
 -- 
-2.20.1
+2.26.2
 
